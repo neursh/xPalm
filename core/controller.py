@@ -44,7 +44,7 @@ class Controller:
 
                 @async_to_sync
                 async def vib(value):
-                    await sio.emit("vibrate", value, to=sid)
+                    await sio.emit("v", value, to=sid)
 
                 def controller_callback(client, target, large_motor, small_motor, led_number, user_data):
                     if large_motor > 0 or small_motor > 0:
@@ -69,31 +69,34 @@ class Controller:
                 return await sio.disconnect(sid)
         
         @sio.event
-        async def key(sid, data):
-            await sio.emit("ASAS", "XD", to=sid)
-            if data["action"] == "press":
-                self.gamepads_sid[sid].press(data["key"])
-            if data["action"] == "release":
-                self.gamepads_sid[sid].release(data["key"])
+        async def K(sid, isPress, key):
+            if isPress:
+                self.gamepads_sid[sid].press(key)
+            else:
+                self.gamepads_sid[sid].release(key)
         
         @sio.event
-        async def joystick(sid, data):
-            if data["action"] == "left_joystick":
-                self.gamepads_sid[sid].left_joystick(data["x"], data["y"])
-            if data["action"] == "right_joystick":
-                self.gamepads_sid[sid].right_joystick(data["x"], data["y"])
+        async def J(sid, isRight, x, y):
+            if isRight:
+                self.gamepads_sid[sid].right_joystick(x, y)
+            else:
+                self.gamepads_sid[sid].left_joystick(x, y)
         
         @sio.event
-        async def trigger(sid, data):
-            if data["action"] == "left_trigger":
-                self.gamepads_sid[sid].left_trigger(data["value"])
-            if data["action"] == "right_trigger":
-                self.gamepads_sid[sid].right_trigger(data["value"])
+        async def T(sid, isRight, value):
+            if isRight:
+                self.gamepads_sid[sid].right_trigger(value)
+            else:
+                self.gamepads_sid[sid].left_trigger(value)
             
         @sio.event
         async def reset(sid, data):
             self.gamepads_sid[sid].reset()
         
+        @sio.event
+        async def PI(sid, data):
+            await sio.emit("PO", None, to=sid)
+
         @sio.event
         async def disconnect(sid):
             if sid in self.gamepads_sid:
