@@ -17,4 +17,7 @@ if __name__ == '__main__':
 
     asyncio.run(ToastsFront.showLaunched())
 
-    input()
+    try:
+        input()
+    except KeyboardInterrupt:
+        pass
