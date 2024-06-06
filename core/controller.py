@@ -1,4 +1,4 @@
-from core.toasts import ToastsFront
+from core.toasts import askForPin, rawToast
 from aiohttp import web
 import threading, socketio
 import asyncio
@@ -34,7 +34,7 @@ class Controller:
                 return
 
             # Ask for PIN using toast if no sid is authorized.
-            if await ToastsFront.askForPin(title="Controller request",
+            if await askForPin(title="Controller request",
                                       description="Please enter the PIN code provided on your phone's screen to confirm.",
                                       pin=environ["HTTP_PIN"]):
                 if environ["REMOTE_ADDR"] in self.warned_ips:
@@ -54,8 +54,8 @@ class Controller:
 
                 self.gamepads_sid[sid].assign_callback(controller_callback)
 
-                asyncio.create_task(ToastsFront.rawToast("Your phone has connected to xPalm", "xPalm is ready to receive inputs from your phone."))
                 await sio.emit("authorized", to=sid)
+                await rawToast("Your phone has connected to xPalm", "xPalm is ready to receive inputs from your phone.")
 
             # Warn if the PIN is wrong.
             elif environ["REMOTE_ADDR"] not in self.warned_ips:
@@ -103,7 +103,7 @@ class Controller:
                 self.gamepads_sid[sid].reset()
                 self.gamepads_sid[sid].dispose()
                 del self.gamepads_sid[sid]
-                asyncio.create_task(ToastsFront.rawToast("Your phone has been disconnected from xPalm", "Try reconnecting or double check the internet connection"))
+                await rawToast("Your phone has been disconnected from xPalm", "Try reconnecting or double check the internet connection")
         
         threading.Thread(target=web.run_app, args=(app, ), kwargs={"host": self.interface, "port": self.port}, daemon=True).start()
 

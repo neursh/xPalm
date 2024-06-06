@@ -2,7 +2,7 @@ import asyncio
 from core.local_ip import LocalIP
 from core.multicast import UDPMulticastSocket
 from core.controller import Controller
-from core.toasts import ToastsFront
+from core.toasts import showLaunched
 
 if __name__ == '__main__':
     # Ask for default local IP interface.
@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # Start Controller server, providing a way to connect to the service.
     Controller(interface=interface, port=45784).startServer()
 
-    asyncio.run(ToastsFront.showLaunched())
+    showLaunched()
 
     try:
         input()
