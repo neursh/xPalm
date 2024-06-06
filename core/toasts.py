@@ -1,17 +1,44 @@
-from win11toast import toast_async
+from toasted import Toast, Text, Button
+from toasted.enums import ToastButtonStyle, ToastTextStyle, ToastTextAlign
 
-class Toasts:
+APP_ID = Toast.register_app_id("Neurs.Dev.xPalm", "xPalm")
+
+class ToastsFront:
     @staticmethod
     async def showLaunched():
-        await toast_async("xPalm is running in the background", "Palm has started a session on this local network and ready to connect. Check out system tray for more options.")
+        toast = Toast(app_id=APP_ID)
+        toast.elements = [
+            Text("xPalm is running in the background"),
+            Text("Palm has started a session on this local network and ready to connect.")
+        ]
+        
+        await toast.show()
 
     @staticmethod
     async def askForPin(title: str, description: str, pin: str):
-        PIN_REQUEST = await toast_async(title, description, input="PIN", button="Connect")
-        if type(PIN_REQUEST) == dict and PIN_REQUEST["user_input"]["PIN"] != "":
-            return PIN_REQUEST["user_input"]["PIN"] == pin
-        return False
+        toast = Toast(app_id=APP_ID)
+        toast.elements = [
+            Text(title),
+            Text(description),
+            [
+                [
+                    Text(pin, style=ToastTextStyle.HEADER, align=ToastTextAlign.CENTER),
+                ]
+            ],
+            Button("Decline", arguments="decline", style=ToastButtonStyle.CRITICAL),
+            Button("Accept", arguments="accept", style=ToastButtonStyle.SUCCESS),
+        ]
+
+        result = await toast.show()
+
+        return result.arguments == "accept"
     
     @staticmethod
     async def rawToast(title: str, description: str):
-        await toast_async(title, description)
+        toast = Toast(app_id=APP_ID)
+        toast.elements = [
+            Text(title),
+            Text(description),
+        ]
+
+        await toast.show()

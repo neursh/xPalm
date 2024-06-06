@@ -1,4 +1,4 @@
-win11toast
+toasted
 aiohttp
 vgamepad
 python-socketio
