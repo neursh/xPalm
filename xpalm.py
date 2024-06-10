@@ -1,4 +1,4 @@
-import asyncio
+from sys import exit
 from core.local_ip import LocalIP
 from core.multicast import UDPMulticastSocket
 from core.controller import Controller
