@@ -33,5 +33,4 @@ class UDPMulticastSocket:
                 break
 
     def stop(self):
-        self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()

@@ -1,42 +1,24 @@
-from toasted import Toast, Text, Button
-from toasted.enums import ToastButtonStyle, ToastTextStyle, ToastTextAlign
-from asgiref.sync import async_to_sync
+from win11toast import toast_async, notify
 
-APP_ID = Toast.register_app_id("Neurs.Dev.xPalm", "xPalm")
+def showLaunched():
+    notify("xPalm is running", "xPalm has started a session on this local network and ready to connect.")
 
-@async_to_sync
-async def showLaunched():
-    toast = Toast(app_id=APP_ID)
-    toast.elements = [
-        Text("xPalm is running in the background"),
-        Text("Palm has started a session on this local network and ready to connect.")
+async def askForPin(pin: str):
+    global result
+    result = None
+
+    buttons = [
+        {"activationType": "protocol", "arguments": "http:accept", "content": "Accept"},
+        {"activationType": "protocol", "arguments": "http:decline", "content": "Decline"}
     ]
 
-    await toast.show()
+    def receive(args):
+        global result
+        result = args["arguments"].replace("http:", "")
 
-async def askForPin(title: str, description: str, pin: str):
-    toast = Toast(app_id=APP_ID)
-    toast.elements = [
-        Text(title),
-        Text(description),
-        [
-            [
-                Text(pin, style=ToastTextStyle.HEADER, align=ToastTextAlign.CENTER),
-            ]
-        ],
-        Button("Decline", arguments="decline", style=ToastButtonStyle.CRITICAL),
-        Button("Accept", arguments="accept", style=ToastButtonStyle.SUCCESS),
-    ]
+    await toast_async("Incoming request", f"A device requested a connection with PIN {pin}", buttons=buttons, on_click=receive)
 
-    result = await toast.show()
+    return result == "accept"
 
-    return result.arguments == "accept"
-
-async def rawToast(title: str, description: str):
-    toast = Toast(app_id=APP_ID)
-    toast.elements = [
-        Text(title),
-        Text(description),
-    ]
-
-    await toast.show()
+def rawToast(title: str, description: str):
+    notify(title, description)

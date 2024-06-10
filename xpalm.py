@@ -9,15 +9,14 @@ if __name__ == '__main__':
     interface = LocalIP.get()
 
     # Start multicast server in thread.
-    udpMulticast = UDPMulticastSocket(interface=interface, udp_ip="224.3.29.115", udp_port=45783)
-    udpMulticast.start()
+    UDPMulticastSocket(interface=interface, udp_ip="224.3.29.115", udp_port=45783).start()
 
     # Start Controller server, providing a way to connect to the service.
-    Controller(interface=interface, port=45784).startServer()
+    Controller(interface=interface, port=45784).start()
 
     showLaunched()
 
     try:
         input()
     except KeyboardInterrupt:
-        pass
+        exit(0)
