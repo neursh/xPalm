@@ -110,14 +110,10 @@ pub async fn client_manager(
 
                 if buf[0] == 4 {
                     if buf[1] == 0 {
-                        control.1.left_trigger = u8::from_le_bytes(
-                            buf[2..4].try_into().unwrap()
-                        );
+                        control.1.left_trigger = buf[3] * 255;
                     }
                     if buf[1] == 1 {
-                        control.1.right_trigger = u8::from_le_bytes(
-                            buf[2..4].try_into().unwrap()
-                        );
+                        control.1.right_trigger = buf[3] * 255;
                     }
 
                     let _ = control.0.update(&control.1);
