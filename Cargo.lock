@@ -344,12 +344,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "queues"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1475abae4f8ad4998590fe3acfe20104f0a5d48fc420c817cd2c09c3f56151f0"
-
-[[package]]
 name = "quote"
 version = "1.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -642,15 +636,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "win-msgbox"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b293d082c6da3f8e9f58a9d2fb076a61737b8f752fb559550a0a864ccfa2bd8"
-dependencies = [
- "windows-sys 0.59.0",
-]
-
-[[package]]
 name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -827,9 +812,7 @@ dependencies = [
  "colored",
  "inquire",
  "local-ip-address",
- "queues",
  "tokio",
  "vigem-client",
  "whoami",
- "win-msgbox",
 ]
