@@ -55,6 +55,11 @@ pub async fn client_manager(
         if let Ok(size) = lock_client.0.read(&mut buf).await {
             if size == 0 {
                 {
+                    println!(
+                        "{} {} disconnected.",
+                        ">".yellow(),
+                        lock_client.1.ip().to_string().bright_cyan()
+                    );
                     let mut lock_controller_list = controller_list.lock().await;
                     lock_controller_list.remove(&lock_client.1.ip());
                 }
