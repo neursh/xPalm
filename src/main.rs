@@ -9,7 +9,7 @@ use std::{
 };
 use tokio::sync::Mutex;
 use colored::Colorize;
-use services::{ announcer, instance, local_ip };
+use services::{ announcer, ghost, instance, local_ip };
 use utils::clear;
 use vigem_client::{ Client, XGamepad, Xbox360Wired };
 use whoami::fallible;
@@ -46,14 +46,20 @@ async fn main() {
             current_ip.bright_cyan(),
             "45784".bright_cyan()
         );
+        println!(
+            "{} Ghost controller | Add: {} | Remove: {}",
+            ">".green(),
+            "F7".bright_cyan(),
+            "F8".bright_cyan()
+        );
 
         if let Some(task) = announcer_task {
             task.abort();
         }
-        if let Some(task) = joystick_task {
+        if let Some(task) = manager_task {
             task.abort();
         }
-        if let Some(task) = manager_task {
+        if let Some(task) = joystick_task {
             task.abort();
         }
 
@@ -82,13 +88,14 @@ async fn main() {
         let manager_target = SocketAddr::new(host_addr, 45784);
         let mut manager_controller_list = controller_list.clone();
         let mut manager_blocked = blocked.clone();
+        let manager_vigem = vigem.clone();
         manager_task = Some(
             tokio::spawn(async move {
                 instance::launch_main(
                     manager_target,
                     &mut manager_controller_list,
                     &mut manager_blocked,
-                    vigem.clone()
+                    manager_vigem
                 ).await
             })
         );
@@ -103,6 +110,9 @@ async fn main() {
                 ).await
             })
         );
+
+        let ghost_vigem = vigem.clone();
+        ghost::listen(ghost_vigem);
 
         current_ip = ip_receiver.recv().unwrap();
     }
