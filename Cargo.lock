@@ -178,6 +178,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyboard_listener_windows"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e630d44447a69e0e6d16bfe65c068662cc1c6bcd44cf98292608adff8ac56df9"
+dependencies = [
+ "lazy_static",
+ "winapi",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -811,6 +821,7 @@ version = "0.1.0"
 dependencies = [
  "colored",
  "inquire",
+ "keyboard_listener_windows",
  "local-ip-address",
  "tokio",
  "vigem-client",
