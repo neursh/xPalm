@@ -31,9 +31,13 @@ async fn main() {
         tokio::task::JoinHandle<Result<(), std::io::Error>>
     > = None;
 
+    let vigem = Arc::new(Client::connect().unwrap());
+
     let mut current_ip = ip_receiver.recv().unwrap();
 
     loop {
+        ghost::deaf();
+
         clear::invoke();
         println!(
             "{} Binding instance on IP Address: {}",
@@ -70,8 +74,6 @@ async fn main() {
 
         let host_v4 = Ipv4Addr::from_str(&current_ip).unwrap();
         let host_addr = IpAddr::V4(host_v4);
-
-        let vigem = Arc::new(Client::connect().unwrap());
 
         let announcer_target = SocketAddr::new(host_addr, 45783);
         announcer_task = Some(

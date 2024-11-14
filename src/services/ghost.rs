@@ -11,6 +11,10 @@ pub fn listen(vigem: Arc<Client>) {
     });
 }
 
+pub fn deaf() {
+    keyboard_listener_windows::stop_listen();
+}
+
 fn callback(
     event: Event,
     vigem: Arc<Client>,
