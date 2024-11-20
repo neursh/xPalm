@@ -6,10 +6,11 @@ use std::{
     net::{ IpAddr, Ipv4Addr, SocketAddr },
     str::FromStr,
     sync::{ mpsc, Arc },
+    thread,
 };
 use tokio::sync::Mutex;
 use colored::Colorize;
-use services::{ announcer, ghost, instance, local_ip };
+use services::{ announcer, ghost, instance, local_ip, raw_input };
 use utils::clear;
 use vigem_client::{ Client, XGamepad, Xbox360Wired };
 use whoami::fallible;
@@ -37,8 +38,10 @@ async fn main() {
 
     loop {
         ghost::deaf();
-
         clear::invoke();
+
+        raw_input::raw_input_processor();
+
         println!(
             "{} Binding instance on IP Address: {}",
             ">".green(),
