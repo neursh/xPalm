@@ -7,7 +7,7 @@ use std::{
     str::FromStr,
     sync::{ mpsc, Arc },
 };
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 use colored::Colorize;
 use services::{ announcer, ghost, instance, local_ip };
 use utils::clear;
@@ -68,8 +68,8 @@ async fn main() {
         }
 
         let controller_list: Arc<
-            Mutex<HashMap<IpAddr, (Xbox360Wired<Arc<Client>>, XGamepad)>>
-        > = Arc::new(Mutex::new(HashMap::new()));
+            RwLock<HashMap<IpAddr, Mutex<(Xbox360Wired<Arc<Client>>, XGamepad)>>>
+        > = Arc::new(RwLock::new(HashMap::new()));
         let blocked: Arc<Mutex<Vec<IpAddr>>> = Arc::new(Mutex::new(Vec::new()));
 
         let host_v4 = Ipv4Addr::from_str(&current_ip).unwrap();

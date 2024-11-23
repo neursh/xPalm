@@ -2,7 +2,7 @@ use colored::Colorize;
 use tokio::{
     io::{ AsyncReadExt, AsyncWriteExt },
     net::{ TcpListener, UdpSocket },
-    sync::Mutex,
+    sync::{ Mutex, RwLock },
 };
 use vigem_client::{ Client, TargetId, XGamepad, Xbox360Wired };
 use std::{ collections::HashMap, io, net::{ IpAddr, SocketAddr }, sync::Arc };
@@ -10,7 +10,7 @@ use std::{ collections::HashMap, io, net::{ IpAddr, SocketAddr }, sync::Arc };
 pub async fn launch_main(
     host_target: SocketAddr,
     controller_list: &mut Arc<
-        Mutex<HashMap<IpAddr, (Xbox360Wired<Arc<Client>>, XGamepad)>>
+        RwLock<HashMap<IpAddr, Mutex<(Xbox360Wired<Arc<Client>>, XGamepad)>>>
     >,
     blocked: &mut Arc<Mutex<Vec<IpAddr>>>,
     vigem: Arc<Client>
@@ -44,7 +44,7 @@ pub async fn client_manager(
     vigem: Arc<Client>,
     client: Arc<Mutex<(tokio::net::TcpStream, SocketAddr)>>,
     controller_list: Arc<
-        Mutex<HashMap<IpAddr, (Xbox360Wired<Arc<Client>>, XGamepad)>>
+        RwLock<HashMap<IpAddr, Mutex<(Xbox360Wired<Arc<Client>>, XGamepad)>>>
     >
 ) -> io::Result<()> {
     let mut lock_client = client.lock().await;
@@ -60,8 +60,9 @@ pub async fn client_manager(
                         ">".yellow(),
                         lock_client.1.ip().to_string().bright_cyan()
                     );
-                    let mut lock_controller_list = controller_list.lock().await;
-                    lock_controller_list.remove(&lock_client.1.ip());
+                    let mut write_controller_list =
+                        controller_list.write().await;
+                    write_controller_list.remove(&lock_client.1.ip());
                 }
                 lock_client.0.shutdown().await.unwrap();
                 break Ok(());
@@ -78,8 +79,9 @@ pub async fn client_manager(
                 ).await
             {
                 {
-                    let mut lock_controller_list = controller_list.lock().await;
-                    lock_controller_list.insert(lock_client.1.ip(), result);
+                    let mut write_controller_list =
+                        controller_list.write().await;
+                    write_controller_list.insert(lock_client.1.ip(), result);
                 }
 
                 lock_client.0.write(&[1]).await.unwrap();
@@ -91,12 +93,13 @@ pub async fn client_manager(
         }
 
         {
-            let mut lock_controller_list = controller_list.lock().await;
+            let lock_controller_list = controller_list.read().await;
 
             if lock_controller_list.contains_key(&lock_client.1.ip()) {
-                let control = lock_controller_list
-                    .get_mut(&lock_client.1.ip())
-                    .unwrap();
+                let mut control = lock_controller_list
+                    .get(&lock_client.1.ip())
+                    .unwrap()
+                    .lock().await;
                 if buf[0] == 2 {
                     if buf[1] == 1 {
                         control.1.buttons.raw |= u16::from_le_bytes(
@@ -109,7 +112,8 @@ pub async fn client_manager(
                         );
                     }
 
-                    let _ = control.0.update(&control.1);
+                    let pads = control.1;
+                    let _ = control.0.update(&pads);
                     continue;
                 }
 
@@ -121,7 +125,8 @@ pub async fn client_manager(
                         control.1.right_trigger = buf[3] * 255;
                     }
 
-                    let _ = control.0.update(&control.1);
+                    let pads = control.1;
+                    let _ = control.0.update(&pads);
                     continue;
                 }
 
@@ -138,7 +143,7 @@ pub async fn client_manager(
 pub async fn launch_joystick(
     host_target: SocketAddr,
     controller_list: &mut Arc<
-        Mutex<HashMap<IpAddr, (Xbox360Wired<Arc<Client>>, XGamepad)>>
+        RwLock<HashMap<IpAddr, Mutex<(Xbox360Wired<Arc<Client>>, XGamepad)>>>
     >
 ) -> io::Result<()> {
     let sock = UdpSocket::bind(host_target).await.unwrap();
@@ -152,12 +157,13 @@ pub async fn launch_joystick(
         };
 
         {
-            let mut lock_controller_list = controller_list.lock().await;
+            let lock_controller_list = controller_list.read().await;
 
             if lock_controller_list.contains_key(&receiver.1.ip()) {
-                let control = lock_controller_list
-                    .get_mut(&receiver.1.ip())
-                    .unwrap();
+                let mut control = lock_controller_list
+                    .get(&receiver.1.ip())
+                    .unwrap()
+                    .lock().await;
                 if buf[0] == 3 {
                     if buf[1] == 0 {
                         control.1.thumb_lx = i16::from_le_bytes(
@@ -176,7 +182,8 @@ pub async fn launch_joystick(
                         );
                     }
 
-                    let _ = control.0.update(&control.1);
+                    let joysticks = control.1;
+                    let _ = control.0.update(&joysticks);
                     continue;
                 }
             }
@@ -187,7 +194,7 @@ pub async fn launch_joystick(
 async fn request_prompt<'a>(
     client_ip: SocketAddr,
     vigem: Arc<Client>
-) -> Option<(Xbox360Wired<Arc<Client>>, XGamepad)> {
+) -> Option<Mutex<(Xbox360Wired<Arc<Client>>, XGamepad)>> {
     let response = inquire::Select
         ::new(
             &format!(
@@ -209,7 +216,7 @@ async fn request_prompt<'a>(
 
         let gamepad = vigem_client::XGamepad::default();
 
-        return Some((controller, gamepad));
+        return Some(Mutex::new((controller, gamepad)));
     }
 
     None
