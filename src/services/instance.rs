@@ -60,9 +60,11 @@ pub async fn client_manager(
                         ">".yellow(),
                         lock_client.1.ip().to_string().bright_cyan()
                     );
-                    let mut write_controller_list =
-                        controller_list.write().await;
-                    write_controller_list.remove(&lock_client.1.ip());
+                    {
+                        let mut write_controller_list =
+                            controller_list.write().await;
+                        write_controller_list.remove(&lock_client.1.ip());
+                    }
                 }
                 lock_client.0.shutdown().await.unwrap();
                 break Ok(());
@@ -93,10 +95,9 @@ pub async fn client_manager(
         }
 
         {
-            let lock_controller_list = controller_list.read().await;
-
-            if lock_controller_list.contains_key(&lock_client.1.ip()) {
-                let mut control = lock_controller_list
+            let read_controller_list = controller_list.read().await;
+            if read_controller_list.contains_key(&lock_client.1.ip()) {
+                let mut control = read_controller_list
                     .get(&lock_client.1.ip())
                     .unwrap()
                     .lock().await;
@@ -157,10 +158,9 @@ pub async fn launch_joystick(
         };
 
         {
-            let lock_controller_list = controller_list.read().await;
-
-            if lock_controller_list.contains_key(&receiver.1.ip()) {
-                let mut control = lock_controller_list
+            let read_controller_list = controller_list.read().await;
+            if read_controller_list.contains_key(&receiver.1.ip()) {
+                let mut control = read_controller_list
                     .get(&receiver.1.ip())
                     .unwrap()
                     .lock().await;
